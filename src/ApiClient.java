@@ -1,3 +1,5 @@
+import com.google.gson.Gson;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -20,6 +22,12 @@ public class ApiClient{
         }
         if(response == null){
             throw  new RuntimeException("No response from API");
+        }
+        Gson gson = new Gson();
+        ApiResponse apiResponse = gson.fromJson(response.body(),ApiResponse.class);
+        for(ApiQuestion q : apiResponse.results){
+            System.out.println(q.question);
+            System.out.println(q.correct_answer);
         }
         return response.body();
     }
