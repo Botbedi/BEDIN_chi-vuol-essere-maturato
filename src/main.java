@@ -15,44 +15,82 @@ public class main {
         PlayerStatics playerStatics = new PlayerStatics(name);
         for(int i = 0;i<5;i++){
             List<String> risposte = stampaDomanda(apiResponse,i);
-            boolean risposta=ottieniRisposta(scanner,apiResponse,risposte,i);
+            boolean risposta=ottieniRisposta(scanner,apiResponse,risposte,i,playerStatics);
             if(risposta){
                 playerStatics.correctAnswer++;
                 System.out.println("risposta corretta");
             }else{
-                salvaDati(playerStatics,name);
-                System.out.println("Risposta sbagliata mi spiace ha perso il gioco");
+                System.out.println("Risposta sbagliata, sei stato bocciato");
+                salvaDati(playerStatics);
                 exit(0);
             }
         }
     }
-    private static boolean ottieniRisposta(Scanner scanner,ApiResponse apiResponse,List<String> risposte,int i) {
+    private static boolean ottieniRisposta(Scanner scanner,ApiResponse apiResponse,List<String> risposte,int i,PlayerStatics playerStatics) {
         char c;
+        boolean risposta;
         do {
             System.out.print("Risposta: ");
             String d = scanner.next().toUpperCase();
             c = d.charAt(0);
-        } while (letteraGiusta(c));
+        } while (!letteraGiusta(c,playerStatics));
         switch (c){
             case 'H':
-                chiediAiuto();
+                chiediAiuto(playerStatics,scanner);
+                risposta = ottieniRisposta(scanner, apiResponse, risposte, i, playerStatics);
                 break;
             case 'R':
-                return false;
+                System.out.println("va bene hai deciso di ritirarti, verrai bocciato");
+                salvaDati(playerStatics);
+                exit(0);
             default:
-                if (apiResponse.results.get(i).correct_answer.equalsIgnoreCase(risposte.get(c - 65))) {
-                    return true;
+                if(apiResponse.results.get(i).correct_answer.equalsIgnoreCase(risposte.get(c - 65))) {
+                    return risposta = true;
                 } else {
-                    return false;
+                    return risposta = false;
                 }
         }
-        return false;
+        return risposta;
     }
-    private static void chiediAiuto() {
+    private static void chiediAiuto(PlayerStatics playerStatics,Scanner scanner) {
+        System.out.println("Che aiuto vuoi");
+        System.out.println("1 - Bigliettino");
+        System.out.println("2 - Classe");
+        String choice = scanner.next().toUpperCase();
+        switch (choice) {
+            case "1":
+                if(playerStatics.used5050){
+                    playerStatics.used5050 = true;
+                    bigliettino();
+                }else{
+                    System.out.println("Hai già usato questo aiuto");
+                }
+                break;
+                case "2":
+                    if(playerStatics.usedAudience){
+                        playerStatics.usedAudience = true;
+                        classe();
+                    }else{
+                        System.out.println("Hai già usato questo aiuto");
+                    }
+                    break;
+                    default:
+                        System.out.println("Aiuto non valido");
+                        chiediAiuto(playerStatics,scanner);
+                        break;
+        }
+    }
+    private static void bigliettino() {
 
     }
-    private static boolean letteraGiusta(char c){
-        return (c>='A' && c<='D')||c=='H'||c=='R';
+    private static void classe() {
+
+    }
+    private static boolean letteraGiusta(char c,PlayerStatics playerStatics){
+        if(c=='H'&&(playerStatics.used5050||playerStatics.usedAudience)){
+            return true;
+        }
+        return (c>='A' && c<='D')||c=='R';
     }
     private static List<String> stampaDomanda(ApiResponse apiResponse, int i) {
         System.out.println(apiResponse.results.get(i).question);
@@ -71,11 +109,11 @@ public class main {
         System.out.println("Inserire nome giocatore");
         return scanner.nextLine();
     }
-    private static void salvaDati(PlayerStatics playerStatics, String name){
+    private static void salvaDati(PlayerStatics playerStatics){
         Gson gson = new Gson();
-        try(FileWriter writer=new FileWriter(name+"_stats.json")){
+        try(FileWriter writer=new FileWriter(playerStatics.name+"_stats.json")){
             gson.toJson(playerStatics, writer);
-            System.out.println("Dati salvati correttamente in: "+name+"_stats.json");
+            System.out.println("Dati salvati correttamente in: "+playerStatics.name+"_stats.json");
         }catch(IOException e){
             System.out.println("Errore durante il salvataggio delle statistiche: "+e.getMessage());
         }
