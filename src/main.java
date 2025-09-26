@@ -4,6 +4,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
+import static java.lang.System.exit;
+
 public class main {
     public static void main(String[] args) {
         ApiResponse apiResponse = creaDomande(5,"easy");
@@ -12,16 +14,47 @@ public class main {
         String name=inserireNome(scanner);
         PlayerStatics playerStatics = new PlayerStatics(name);
         for(int i = 0;i<5;i++){
-            stampaDomanda(apiResponse,i);
-            boolean risposta=ottieniRisposta(scanner,apiResponse);
+            List<String> risposte = stampaDomanda(apiResponse,i);
+            boolean risposta=ottieniRisposta(scanner,apiResponse,risposte,i);
+            if(risposta){
+                playerStatics.correctAnswer++;
+                System.out.println("risposta corretta");
+            }else{
+                salvaDati(playerStatics,name);
+                System.out.println("Risposta sbagliata mi spiace ha perso il gioco");
+                exit(0);
+            }
         }
     }
-    private static boolean ottieniRisposta(Scanner scanner,ApiResponse apiResponse) {
-        scanner.nextLine();
-
+    private static boolean ottieniRisposta(Scanner scanner,ApiResponse apiResponse,List<String> risposte,int i) {
+        char c;
+        do {
+            System.out.print("Risposta: ");
+            String d = scanner.next().toUpperCase();
+            c = d.charAt(0);
+        } while (letteraGiusta(c));
+        switch (c){
+            case 'H':
+                chiediAiuto();
+                break;
+            case 'R':
+                return false;
+            default:
+                if (apiResponse.results.get(i).correct_answer.equalsIgnoreCase(risposte.get(c - 65))) {
+                    return true;
+                } else {
+                    return false;
+                }
+        }
         return false;
     }
-    private static void stampaDomanda(ApiResponse apiResponse, int i) {
+    private static void chiediAiuto() {
+
+    }
+    private static boolean letteraGiusta(char c){
+        return (c>='A' && c<='D')||c=='H'||c=='R';
+    }
+    private static List<String> stampaDomanda(ApiResponse apiResponse, int i) {
         System.out.println(apiResponse.results.get(i).question);
         List<String> risposte = new ArrayList<>();
         risposte.add(apiResponse.results.get(i).correct_answer);
@@ -29,9 +62,10 @@ public class main {
         Collections.shuffle(risposte);
         for(char j = 'A';j<'E';j++){
             System.out.print(j);
-            String risposta =risposte.removeFirst();
+            String risposta =risposte.get(j-65);
             System.out.println(" - "+risposta);
         }
+        return risposte;
     }
     private static String inserireNome(Scanner scanner){
         System.out.println("Inserire nome giocatore");
