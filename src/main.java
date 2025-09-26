@@ -13,7 +13,41 @@ public class main {
         Scanner scanner = new Scanner(System.in);
         String name=inserireNome(scanner);
         PlayerStatics playerStatics = new PlayerStatics(name);
-        for(int i = 0;i<5;i++){
+        /*for(int i = 0;i<5;i++){
+            List<String> risposte = stampaDomanda(apiResponse,i);
+            boolean risposta=ottieniRisposta(scanner,apiResponse,risposte,i,playerStatics);
+            if(risposta){
+                playerStatics.correctAnswer++;
+                System.out.println("risposta corretta");
+            }else{
+                System.out.println("Risposta sbagliata, sei stato bocciato");
+                salvaDati(playerStatics);
+                exit(0);
+            }
+        }*/try{
+            Thread.sleep(5500);
+        }catch(InterruptedException e){}
+
+        apiResponse = creaDomande(3,"medium");
+        System.out.println("Molto bene hai risposto alle domande facili ora passiamo a quelle di livello medio");
+        /*for(int i = 0;i<3;i++){
+            List<String> risposte = stampaDomanda(apiResponse,i);
+            boolean risposta=ottieniRisposta(scanner,apiResponse,risposte,i,playerStatics);
+            if(risposta){
+                playerStatics.correctAnswer++;
+                System.out.println("risposta corretta");
+            }else{
+                System.out.println("Risposta sbagliata, sei stato bocciato");
+                salvaDati(playerStatics);
+                exit(0);
+            }
+        }*/
+        try{
+            Thread.sleep(5500);
+        }catch(InterruptedException e){}
+        apiResponse = creaDomande(2,"hard");
+        System.out.println("Molto bene hai risposto alle domande medie ora passiamo a quelle di livello difficile");
+        for(int i = 0;i<2;i++){
             List<String> risposte = stampaDomanda(apiResponse,i);
             boolean risposta=ottieniRisposta(scanner,apiResponse,risposte,i,playerStatics);
             if(risposta){
@@ -25,6 +59,8 @@ public class main {
                 exit(0);
             }
         }
+        salvaDati(playerStatics);
+        System.out.println("COmplimenti hai risposto a tutte le domande ore sei un maturato a tutti gli effetti");
     }
     private static boolean ottieniRisposta(Scanner scanner,ApiResponse apiResponse,List<String> risposte,int i,PlayerStatics playerStatics) {
         char c;
@@ -36,9 +72,15 @@ public class main {
         } while (!letteraGiusta(c,playerStatics));
         switch (c){
             case 'H':
-                chiediAiuto(playerStatics,scanner);
-                risposta = ottieniRisposta(scanner, apiResponse, risposte, i, playerStatics);
-                break;
+                switch (chiediAiuto(playerStatics,scanner)){
+                    case 1:
+                        System.out.println(apiResponse.results.get(i).correct_answer);
+                        break;
+                    case 2:
+                        classe(apiResponse,i,risposte);
+                        break;
+                };
+                return ottieniRisposta(scanner, apiResponse, risposte, i, playerStatics);
             case 'R':
                 System.out.println("va bene hai deciso di ritirarti, verrai bocciato");
                 salvaDati(playerStatics);
@@ -50,45 +92,55 @@ public class main {
                     return risposta = false;
                 }
         }
-        return risposta;
     }
-    private static void chiediAiuto(PlayerStatics playerStatics,Scanner scanner) {
+    private static int chiediAiuto(PlayerStatics playerStatics,Scanner scanner) {
         System.out.println("Che aiuto vuoi");
         System.out.println("1 - Bigliettino");
         System.out.println("2 - Classe");
         String choice = scanner.next().toUpperCase();
         switch (choice) {
             case "1":
-                if(playerStatics.used5050){
+                if(!playerStatics.used5050){
                     playerStatics.used5050 = true;
-                    bigliettino();
+                    return 1;
                 }else{
                     System.out.println("Hai già usato questo aiuto");
                 }
-                break;
                 case "2":
-                    if(playerStatics.usedAudience){
+                    if(!playerStatics.usedAudience){
                         playerStatics.usedAudience = true;
-                        classe();
+                        return 2;
                     }else{
                         System.out.println("Hai già usato questo aiuto");
                     }
-                    break;
                     default:
                         System.out.println("Aiuto non valido");
-                        chiediAiuto(playerStatics,scanner);
-                        break;
+                        return chiediAiuto(playerStatics,scanner);
         }
     }
-    private static void bigliettino() {
-
-    }
-    private static void classe() {
-
+    private static void classe(ApiResponse apiResponse,int i,List<String> risposte) {
+        int[] votiRisposte = new int[risposte.size()];
+        Random rand = new Random();
+        for(int j=0;j<20;j++){
+            int casuale = rand.nextInt(4);
+            votiRisposte[casuale]++;
+            if(risposte.get(casuale).equalsIgnoreCase(apiResponse.results.get(i).correct_answer)){
+                votiRisposte[casuale]++;
+            }
+        }
+        System.out.println("I tuo compagni ti aiutano dicendoti queste risposte");
+        for(char j = 'A';j<'E';j++){
+            System.out.print(j);
+            System.out.println(" - "+votiRisposte[j-65]);
+        }
     }
     private static boolean letteraGiusta(char c,PlayerStatics playerStatics){
-        if(c=='H'&&(playerStatics.used5050||playerStatics.usedAudience)){
-            return true;
+        if(c=='H'){
+            if(!playerStatics.used5050||!playerStatics.usedAudience){
+                return true;
+            }else{
+                System.out.println("Hai già usato tutti i tuoi aiuti");
+            }
         }
         return (c>='A' && c<='D')||c=='R';
     }
@@ -120,7 +172,7 @@ public class main {
     }
     private static ApiResponse creaDomande(int n, String difficulty){
         ApiClient apiClient = new ApiClient();
-        String s = apiClient.fetchQuestion(5,difficulty,"multiple");
+        String s = apiClient.fetchQuestion(n,difficulty,"multiple");
         Gson gson = new Gson();
         return gson.fromJson(s,ApiResponse.class);
     }
