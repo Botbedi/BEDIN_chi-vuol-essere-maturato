@@ -13,7 +13,7 @@ public class main {
         Scanner scanner = new Scanner(System.in);
         String name=inserireNome(scanner);
         PlayerStatics playerStatics = new PlayerStatics(name);
-        /*for(int i = 0;i<5;i++){
+        for(int i = 0;i<5;i++){
             List<String> risposte = stampaDomanda(apiResponse,i);
             boolean risposta=ottieniRisposta(scanner,apiResponse,risposte,i,playerStatics);
             if(risposta){
@@ -24,13 +24,10 @@ public class main {
                 salvaDati(playerStatics);
                 exit(0);
             }
-        }*/try{
-            Thread.sleep(5500);
-        }catch(InterruptedException e){}
-
+        }
         apiResponse = creaDomande(3,"medium");
         System.out.println("Molto bene hai risposto alle domande facili ora passiamo a quelle di livello medio");
-        /*for(int i = 0;i<3;i++){
+        for(int i = 0;i<3;i++){
             List<String> risposte = stampaDomanda(apiResponse,i);
             boolean risposta=ottieniRisposta(scanner,apiResponse,risposte,i,playerStatics);
             if(risposta){
@@ -41,10 +38,7 @@ public class main {
                 salvaDati(playerStatics);
                 exit(0);
             }
-        }*/
-        try{
-            Thread.sleep(5500);
-        }catch(InterruptedException e){}
+        }
         apiResponse = creaDomande(2,"hard");
         System.out.println("Molto bene hai risposto alle domande medie ora passiamo a quelle di livello difficile");
         for(int i = 0;i<2;i++){
