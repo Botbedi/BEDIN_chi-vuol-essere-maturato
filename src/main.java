@@ -43,8 +43,7 @@ public class main {
         System.out.println("Molto bene hai risposto alle domande medie ora passiamo a quelle di livello difficile");
         for(int i = 0;i<2;i++){
             List<String> risposte = stampaDomanda(apiResponse,i);
-            boolean risposta=ottieniRisposta(scanner,apiResponse,risposte,i,playerStatics);
-            if(risposta){
+            if(ottieniRisposta(scanner,apiResponse,risposte,i,playerStatics)){
                 playerStatics.correctAnswer++;
                 System.out.println("risposta corretta");
             }else{
